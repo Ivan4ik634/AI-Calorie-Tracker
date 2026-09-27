@@ -1,0 +1,53 @@
+import { analyzeFood } from '@/services/ai';
+import type { FoodAnalysis, FoodAnalysisStatus } from '@/types';
+import { useCallback, useRef, useState } from 'react';
+
+export function useFoodAnalysis() {
+  const [status, setStatus] = useState<FoodAnalysisStatus>('idle');
+  const [image, setImage] = useState<string | null>(null);
+  const [result, setResult] = useState<FoodAnalysis | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const requestId = useRef(0);
+
+  const runAnalysis = useCallback(async (dataUrl: string) => {
+    const current = ++requestId.current;
+    setStatus('analyzing');
+    setError(null);
+
+    try {
+      const analysis = await analyzeFood(dataUrl);
+      if (current !== requestId.current) return;
+      setResult(analysis);
+      setStatus('success');
+    } catch {
+      if (current !== requestId.current) return;
+      setError('Не вдалося проаналізувати фото. Спробуйте ще раз.');
+      setStatus('error');
+    }
+  }, []);
+
+  const selectImage = useCallback(
+    (dataUrl: string) => {
+      setImage(dataUrl);
+      setResult(null);
+      setError(null);
+      setStatus('preview');
+      void runAnalysis(dataUrl);
+    },
+    [runAnalysis],
+  );
+
+  const retry = useCallback(() => {
+    if (image) void runAnalysis(image);
+  }, [image, runAnalysis]);
+
+  const reset = useCallback(() => {
+    requestId.current += 1;
+    setStatus('idle');
+    setImage(null);
+    setResult(null);
+    setError(null);
+  }, []);
+
+  return { status, image, result, error, selectImage, retry, reset };
+}
