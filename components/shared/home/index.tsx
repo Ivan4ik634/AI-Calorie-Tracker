@@ -3,20 +3,23 @@
 import { BottomNav } from '@/components/shared/BottomNav';
 import { CalendarDialog } from '@/components/shared/CalendarDialog';
 import { MealDetailDialog } from '@/components/shared/MealDetailDialog';
+import type { NutritionValues } from '@/components/shared/NutritionFields';
 import { Dialog, DialogBackdrop, DialogPopup, DialogPortal } from '@/components/ui/dialog';
 import { useFoodAnalysis } from '@/hooks/useFoodAnalysis';
 import { useFoodDiary } from '@/hooks/useFoodDiary';
 import { useImageInput } from '@/hooks/useImageInput';
-import { isSameDay, isToday } from '@/lib/date';
+import { isSameDay } from '@/lib/date';
+import type { EditableNutrition } from '@/lib/nutrition';
+import { editableToEntryPatch } from '@/lib/nutrition';
 import { useFoodDiaryStore } from '@/stores/foodDiaryStore';
 import { useGoalsStore } from '@/stores/goalsStore';
 import { useProfileStore } from '@/stores/profileStore';
-import type { FoodAnalysis, FoodEntry } from '@/types';
+import type { FoodEntry } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { AddFoodCard } from './AddFoodCard';
 import { CalorieProgress } from './CalorieProgress';
-import { FoodAnalysisError, FoodAnalysisResult } from './FoodAnalysisResult';
+import { FoodAnalysisError, FoodAnalysisResult, FoodNotDetected } from './FoodAnalysisResult';
 import { FoodPreview } from './FoodPreview';
 import { FoodSourceModal } from './FoodSourceModal';
 import { HomeHeader } from './HomeHeader';
@@ -78,7 +81,7 @@ export default function HomePage() {
     analysis.reset();
   };
 
-  const handleConfirm = (values: FoodAnalysis) => {
+  const handleConfirm = (values: NutritionValues & { name: string }) => {
     addEntry({
       name: values.name,
       calories: values.calories,
@@ -86,28 +89,21 @@ export default function HomePage() {
       fat: values.fat,
       carbs: values.carbs,
       grams: values.grams,
+      caloriesPer100g: values.per100g?.calories,
+      proteinPer100g: values.per100g?.protein,
+      fatPer100g: values.per100g?.fat,
+      carbsPer100g: values.per100g?.carbs,
       eaten: true,
       image: analysis.image ?? undefined,
     });
     closeFlow();
   };
 
-  const handleSaveDetail = (
-    id: string,
-    values: {
-      calories: number;
-      protein: number;
-      fat: number;
-      carbs: number;
-      grams?: number;
-      eaten: boolean;
-    },
-  ) => {
-    updateEntry(id, values);
+  const handleSaveDetail = (id: string, values: EditableNutrition & { eaten: boolean }) => {
+    updateEntry(id, { ...editableToEntryPatch(values), eaten: values.eaten });
   };
 
   const showSource = analysis.status === 'idle' || analysis.status === 'selecting';
-  const viewingToday = isToday(selectedDate);
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-background">
@@ -179,6 +175,14 @@ export default function HomePage() {
               <FoodAnalysisError
                 message={analysis.error ?? 'Спробуйте ще раз.'}
                 onRetry={analysis.retry}
+              />
+            )}
+
+            {analysis.status === 'not-food' && (
+              <FoodNotDetected
+                message={analysis.error ?? 'На фото не схоже на їжу.'}
+                onCamera={openCamera}
+                onGallery={openGallery}
               />
             )}
           </DialogPopup>

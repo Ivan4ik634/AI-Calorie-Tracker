@@ -1,6 +1,7 @@
 'use client';
 
 import { BottomNav } from '@/components/shared/BottomNav';
+import { useUnits } from '@/hooks/useUnits';
 import { useFoodDiaryStore } from '@/stores/foodDiaryStore';
 import { useGoalsStore } from '@/stores/goalsStore';
 import { useProfileStore } from '@/stores/profileStore';
@@ -20,6 +21,7 @@ export default function ProfilePage() {
   const { goals, hydrate: hydrateGoals, setGoals } = useGoalsStore();
   const hydrateDiary = useFoodDiaryStore((state) => state.hydrate);
   const hydrateSettings = useSettingsStore((state) => state.hydrate);
+  const { weightUnit, toDisplayWeight, fromDisplayWeight } = useUnits();
 
   const [editTarget, setEditTarget] = useState<EditTarget>(null);
 
@@ -29,6 +31,8 @@ export default function ProfilePage() {
     hydrateDiary();
     hydrateSettings();
   }, [hydrateProfile, hydrateGoals, hydrateDiary, hydrateSettings]);
+
+  const displayWeight = toDisplayWeight(profile.weight);
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-background">
@@ -46,7 +50,9 @@ export default function ProfilePage() {
           className="flex w-full items-center justify-between rounded-2xl border border-border/60 bg-card p-4 text-left transition-colors hover:bg-muted/40">
           <span>
             <span className="block text-xs text-muted-foreground">Поточна вага</span>
-            <span className="block text-xl font-bold">{profile.weight} кг</span>
+            <span className="block text-xl font-bold">
+              {displayWeight} {weightUnit}
+            </span>
           </span>
         </button>
 
@@ -89,11 +95,11 @@ export default function ProfilePage() {
         open={editTarget === 'weight'}
         title="Поточна вага"
         label="Вага"
-        value={profile.weight}
+        value={displayWeight}
         type="number"
-        suffix="кг"
+        suffix={weightUnit}
         onOpenChange={(open) => !open && setEditTarget(null)}
-        onSave={(value) => updateProfile({ weight: Number(value) })}
+        onSave={(value) => updateProfile({ weight: fromDisplayWeight(Number(value)) })}
       />
 
       <EditFieldDialog

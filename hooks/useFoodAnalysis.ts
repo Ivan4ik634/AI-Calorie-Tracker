@@ -1,4 +1,4 @@
-import { analyzeFood } from '@/services/ai';
+import { analyzeFood, NotFoodError } from '@/services/ai';
 import type { FoodAnalysis, FoodAnalysisStatus } from '@/types';
 import { useCallback, useRef, useState } from 'react';
 
@@ -19,8 +19,13 @@ export function useFoodAnalysis() {
       if (current !== requestId.current) return;
       setResult(analysis);
       setStatus('success');
-    } catch {
+    } catch (err) {
       if (current !== requestId.current) return;
+      if (err instanceof NotFoodError) {
+        setError(err.message);
+        setStatus('not-food');
+        return;
+      }
       setError('Не вдалося проаналізувати фото. Спробуйте ще раз.');
       setStatus('error');
     }

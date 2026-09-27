@@ -6,23 +6,39 @@ import type { FoodAnalysis } from '@/types';
  */
 export type AnalyzeFood = (image: string) => Promise<FoodAnalysis>;
 
-const MOCK_RESULTS: FoodAnalysis[] = [
-  { name: 'Вівсянка з бананом', calories: 328, protein: 12, fat: 6, carbs: 56, grams: 350 },
-  { name: 'Курка з рисом', calories: 512, protein: 42, fat: 14, carbs: 48, grams: 400 },
-  { name: 'Салат з овочів', calories: 180, protein: 5, fat: 9, carbs: 18, grams: 250 },
-  { name: 'Яєчня з томатами', calories: 265, protein: 18, fat: 19, carbs: 6, grams: 220 },
-  { name: 'Грецький йогурт', calories: 146, protein: 15, fat: 4, carbs: 12, grams: 170 },
-];
-
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+/**
+ * Thrown when the AI cannot recognize any food in the image.
+ * The UI uses this to show a dedicated "not food" screen instead of
+ * the regular analysis result.
+ */
+export class NotFoodError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NotFoodError';
+  }
+}
 
 /**
- * Mock implementation. Simulates network latency and returns a plausible
- * analysis result. Replace with a real provider call later.
+ * Sends the image to the backend route, which asks the AI for per-100g
+ * values plus the visible portion weight, then scales them to the actual
+ * portion (weight_g / 100) before returning the result.
  */
-export const analyzeFood: AnalyzeFood = async () => {
-  await delay(1800);
+export const analyzeFood: AnalyzeFood = async (image) => {
+  const response = await fetch('/api/analyze-food', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image }),
+  });
 
-  const result = MOCK_RESULTS[Math.floor(Math.random() * MOCK_RESULTS.length)];
-  return { ...result };
+  const data = await response.json();
+
+  if (!response.ok || data?.error) {
+    throw new Error(data?.error ?? 'Не вдалося проаналізувати фото.');
+  }
+
+  if (data.food_detected === false) {
+    throw new NotFoodError(data.message ?? 'На фото не схоже на їжу.');
+  }
+
+  return data as FoodAnalysis;
 };

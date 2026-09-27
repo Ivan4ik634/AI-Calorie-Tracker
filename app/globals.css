@@ -129,7 +129,6 @@
     @apply font-sans;
   }
 
-  /* Hide native number input spinner arrows so the user edits the value freely */
   input[type='number'] {
     -moz-appearance: textfield;
     appearance: textfield;

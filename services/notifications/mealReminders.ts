@@ -40,26 +40,3 @@ export const MEAL_REMINDERS: MealReminder[] = [
     body: 'Не забудьте додати вечерю до щоденника.',
   },
 ];
-
-export function isNotificationSupported(): boolean {
-  return typeof window !== 'undefined' && 'Notification' in window;
-}
-
-export async function requestNotificationPermission(): Promise<boolean> {
-  if (!isNotificationSupported()) return false;
-  if (Notification.permission === 'granted') return true;
-  if (Notification.permission === 'denied') return false;
-
-  const permission = await Notification.requestPermission();
-  return permission === 'granted';
-}
-
-export function showMealNotification(reminder: MealReminder): void {
-  if (!isNotificationSupported() || Notification.permission !== 'granted') return;
-
-  new Notification(reminder.title, {
-    body: reminder.body,
-    icon: '/favicon.ico',
-    tag: `meal-${reminder.id}`,
-  });
-}

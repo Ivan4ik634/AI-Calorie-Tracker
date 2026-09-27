@@ -6,6 +6,8 @@ import { MealDetailDialog } from '@/components/shared/MealDetailDialog';
 import { WeekCalendar } from '@/components/shared/WeekCalendar';
 import { useFoodDiary } from '@/hooks/useFoodDiary';
 import { isSameDay } from '@/lib/date';
+import type { EditableNutrition } from '@/lib/nutrition';
+import { editableToEntryPatch } from '@/lib/nutrition';
 import { useFoodDiaryStore } from '@/stores/foodDiaryStore';
 import { useGoalsStore } from '@/stores/goalsStore';
 import type { FoodEntry } from '@/types';
@@ -40,6 +42,10 @@ export default function DiaryPage() {
     [dayEntries],
   );
 
+  const handleSave = (id: string, values: EditableNutrition & { eaten: boolean }) => {
+    updateEntry(id, { ...editableToEntryPatch(values), eaten: values.eaten });
+  };
+
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-background">
       <main className="flex-1 space-y-5 px-4 pb-6 pt-6">
@@ -62,7 +68,7 @@ export default function DiaryPage() {
       <MealDetailDialog
         entry={detailEntry}
         onOpenChange={(open) => !open && setDetailEntry(null)}
-        onSave={updateEntry}
+        onSave={handleSave}
         onDelete={removeEntry}
       />
     </div>

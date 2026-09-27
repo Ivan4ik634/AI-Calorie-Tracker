@@ -40,9 +40,8 @@ export function CalorieProgress({ consumed, goal }: CalorieProgressProps) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-xs text-muted-foreground">Запишилось</span>
           <span className="text-4xl font-bold tracking-tight">{consumed}</span>
-          <span className="text-sm text-muted-foreground">з {goal}</span>
+          <span className="text-sm text-muted-foreground">з {goal} ккал</span>
         </div>
       </div>
     </div>

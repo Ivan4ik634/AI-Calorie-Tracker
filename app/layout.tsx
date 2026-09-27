@@ -2,6 +2,7 @@ import { AppEffects } from '@/components/shared/AppEffects';
 import { cn } from '@/lib/utils';
 import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono, Inter } from 'next/font/google';
+import { Toaster } from 'react-hot-toast';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
@@ -17,8 +18,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Calorie Counter',
+  title: 'Calorie Tracker',
   description: 'Підрахунок калорій за фото їжі',
+  applicationName: 'Calorie Tracker',
+  appleWebApp: {
+    capable: true,
+    title: 'Calorie Tracker',
+    statusBarStyle: 'black-translucent',
+  },
+  icons: {
+    icon: [
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
 };
 
 export const viewport: Viewport = {
@@ -44,6 +58,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <AppEffects />
         {children}
+        <Toaster position="bottom-center" />
       </body>
     </html>
   );

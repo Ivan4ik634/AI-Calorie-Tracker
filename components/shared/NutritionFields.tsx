@@ -1,15 +1,11 @@
 'use client';
 
 import { Input } from '@/components/ui/input';
+import type { EditableNutrition } from '@/lib/nutrition';
+import { calcPortion } from '@/lib/nutrition';
 import { cn } from '@/lib/utils';
 
-export interface NutritionValues {
-  calories: number;
-  protein: number;
-  fat: number;
-  carbs: number;
-  grams?: number;
-}
+export type NutritionValues = EditableNutrition;
 
 interface NutritionFieldsProps {
   values: NutritionValues;
@@ -33,6 +29,17 @@ export function NutritionFields({ values, onChange, className }: NutritionFields
     onChange({ ...values, [key]: toNumber(raw) });
   };
 
+  // When the user edits the portion weight, rescale every value from the
+  // per-100g source (120 g -> ×1.2, etc.).
+  const updateGrams = (raw: string) => {
+    const grams = toNumber(raw);
+    if (values.per100g) {
+      onChange({ ...values, grams, ...calcPortion(values.per100g, grams) });
+    } else {
+      onChange({ ...values, grams });
+    }
+  };
+
   return (
     <div className={cn('space-y-3', className)}>
       <div className="grid grid-cols-2 gap-3">
@@ -41,6 +48,8 @@ export function NutritionFields({ values, onChange, className }: NutritionFields
           <div className="flex items-center gap-1.5">
             <Input
               type="number"
+              autoComplete="off"
+              name={`secure_num_${Math.random().toString(36).slice(2, 7)}`}
               inputMode="numeric"
               value={values.calories}
               onChange={(event) => update('calories', event.target.value)}
@@ -54,10 +63,12 @@ export function NutritionFields({ values, onChange, className }: NutritionFields
           <div className="flex items-center gap-1.5">
             <Input
               type="number"
+              autoComplete="off"
+              name={`secure_num_${Math.random().toString(36).slice(2, 7)}`}
               inputMode="numeric"
               value={values.grams ?? ''}
               placeholder="—"
-              onChange={(event) => update('grams', event.target.value)}
+              onChange={(event) => updateGrams(event.target.value)}
               className="h-11 rounded-xl text-base"
             />
             <span className="text-xs text-muted-foreground">г</span>
@@ -72,6 +83,8 @@ export function NutritionFields({ values, onChange, className }: NutritionFields
             <div className="flex items-center gap-1">
               <Input
                 type="number"
+                autoComplete="off"
+                name={`secure_num_${Math.random().toString(36).slice(2, 7)}`}
                 inputMode="numeric"
                 value={values[key]}
                 onChange={(event) => update(key, event.target.value)}

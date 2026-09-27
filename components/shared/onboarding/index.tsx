@@ -3,13 +3,15 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useUnits } from '@/hooks/useUnits';
 import { GOAL_LABELS, GOAL_ORDER } from '@/lib/profile';
 import { useGoalsStore } from '@/stores/goalsStore';
 import { useProfileStore } from '@/stores/profileStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import type { GoalType } from '@/types';
 import { ChevronLeft, Minus, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const CALORIE_STEP = 50;
 const CALORIE_MIN = 1000;
@@ -20,14 +22,31 @@ type Step = (typeof STEPS)[number];
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { profile, updateProfile } = useProfileStore();
+  const { profile, hydrate: hydrateProfile, updateProfile } = useProfileStore();
+  const profileHydrated = useProfileStore((state) => state.hydrated);
   const { goals, setGoals } = useGoalsStore();
+  const hydrateSettings = useSettingsStore((state) => state.hydrate);
+  const settingsHydrated = useSettingsStore((state) => state.hydrated);
+  const { units, weightUnit, toDisplayWeight, fromDisplayWeight } = useUnits();
 
   const [stepIndex, setStepIndex] = useState(0);
   const [name, setName] = useState(profile.name);
   const [weight, setWeight] = useState(String(profile.weight));
   const [goalType, setGoalType] = useState<GoalType>(profile.goalType);
   const [calories, setCalories] = useState(goals.calories);
+  const weightInitialized = useRef(false);
+
+  useEffect(() => {
+    hydrateProfile();
+    hydrateSettings();
+  }, [hydrateProfile, hydrateSettings]);
+
+  // Once stored profile + units are loaded, show the weight in the chosen unit.
+  useEffect(() => {
+    if (!profileHydrated || !settingsHydrated || weightInitialized.current) return;
+    weightInitialized.current = true;
+    setWeight(String(toDisplayWeight(profile.weight)));
+  }, [profileHydrated, settingsHydrated, profile.weight, toDisplayWeight]);
 
   const step: Step = STEPS[stepIndex];
   const isFirst = stepIndex === 0;
@@ -41,7 +60,7 @@ export default function OnboardingPage() {
     if (isLast) {
       updateProfile({
         name: name.trim(),
-        weight: Number(weight),
+        weight: fromDisplayWeight(Number(weight)),
         goalType,
         onboarded: true,
       });
@@ -110,12 +129,16 @@ export default function OnboardingPage() {
             <section className="space-y-3">
               <div className="space-y-1">
                 <h1 className="text-2xl font-bold tracking-tight">Ваша вага</h1>
-                <p className="text-sm text-muted-foreground">Вкажіть поточну вагу в кілограмах.</p>
+                <p className="text-sm text-muted-foreground">
+                  Вкажіть поточну вагу у {units === 'imperial' ? 'фунтах' : 'кілограмах'}.
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 <Input
                   autoFocus
                   type="number"
+                  autoComplete="off"
+                  name={`secure_num_${Math.random().toString(36).slice(2, 7)}`}
                   inputMode="numeric"
                   value={weight}
                   onChange={(event) => setWeight(event.target.value)}
@@ -123,7 +146,7 @@ export default function OnboardingPage() {
                   placeholder="72"
                   className="h-12 rounded-xl text-base"
                 />
-                <span className="text-sm text-muted-foreground">кг</span>
+                <span className="text-sm text-muted-foreground">{weightUnit}</span>
               </div>
             </section>
           )}

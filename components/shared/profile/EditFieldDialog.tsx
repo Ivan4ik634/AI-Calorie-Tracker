@@ -56,6 +56,12 @@ export function EditFieldDialog({
               <Input
                 autoFocus
                 type={type}
+                autoComplete={type === 'number' ? 'off' : undefined}
+                name={
+                  type === 'number'
+                    ? `secure_num_${Math.random().toString(36).slice(2, 7)}`
+                    : undefined
+                }
                 inputMode={type === 'number' ? 'numeric' : 'text'}
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}

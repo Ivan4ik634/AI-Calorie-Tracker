@@ -1,6 +1,5 @@
 'use client';
 
-import type { NutritionValues } from '@/components/shared/NutritionFields';
 import { NutritionFields } from '@/components/shared/NutritionFields';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +11,8 @@ import {
 } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { formatFullDate, formatTime } from '@/lib/date';
+import type { EditableNutrition } from '@/lib/nutrition';
+import { entryToEditable } from '@/lib/nutrition';
 import type { FoodEntry } from '@/types';
 import { Trash, Utensils } from 'lucide-react';
 import Image from 'next/image';
@@ -20,23 +21,17 @@ import { useEffect, useState } from 'react';
 interface MealDetailDialogProps {
   entry: FoodEntry | null;
   onOpenChange: (open: boolean) => void;
-  onSave: (id: string, values: NutritionValues & { eaten: boolean }) => void;
+  onSave: (id: string, values: EditableNutrition & { eaten: boolean }) => void;
   onDelete: (id: string) => void;
 }
 
 export function MealDetailDialog({ entry, onOpenChange, onSave, onDelete }: MealDetailDialogProps) {
-  const [values, setValues] = useState<NutritionValues | null>(null);
+  const [values, setValues] = useState<EditableNutrition | null>(null);
   const [eaten, setEaten] = useState(true);
 
   useEffect(() => {
     if (!entry) return;
-    setValues({
-      calories: entry.calories,
-      protein: entry.protein,
-      fat: entry.fat,
-      carbs: entry.carbs,
-      grams: entry.grams,
-    });
+    setValues(entryToEditable(entry));
     setEaten(entry.eaten);
   }, [entry]);
 

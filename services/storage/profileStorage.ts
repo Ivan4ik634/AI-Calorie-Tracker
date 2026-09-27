@@ -4,7 +4,7 @@ import { readJson, writeJson } from './localStorage';
 const PROFILE_KEY = 'calorie-counter:user-profile';
 
 export const DEFAULT_PROFILE: UserProfile = {
-  name: 'Іван',
+  name: '',
   weight: 72,
   goalType: 'lose',
   onboarded: false,

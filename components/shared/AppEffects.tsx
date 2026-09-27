@@ -1,6 +1,6 @@
 'use client';
 
-import { useMealReminders } from '@/hooks/useMealReminders';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useProfileStore } from '@/stores/profileStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { usePathname, useRouter } from 'next/navigation';
@@ -26,7 +26,7 @@ export function AppEffects() {
     if (!onboarded) router.replace('/onboarding');
   }, [profileHydrated, onboarded, pathname, router]);
 
-  useMealReminders();
+  usePushNotifications();
 
   return null;
 }

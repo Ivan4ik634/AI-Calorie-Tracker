@@ -4,48 +4,37 @@ import type { NutritionValues } from '@/components/shared/NutritionFields';
 import { NutritionFields } from '@/components/shared/NutritionFields';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { analysisToEditable } from '@/lib/nutrition';
 import type { FoodAnalysis } from '@/types';
-import { CircleAlert, RefreshCw, Sparkles } from 'lucide-react';
+import {
+  Camera,
+  CircleAlert,
+  Image as ImageIcon,
+  RefreshCw,
+  Sparkles,
+  UtensilsCrossed,
+} from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 interface FoodAnalysisResultProps {
   image: string;
   result: FoodAnalysis;
-  onConfirm: (values: FoodAnalysis) => void;
+  onConfirm: (values: NutritionValues & { name: string }) => void;
   onRetry: () => void;
 }
 
 export function FoodAnalysisResult({ image, result, onConfirm, onRetry }: FoodAnalysisResultProps) {
   const [name, setName] = useState(result.name);
-  const [values, setValues] = useState<NutritionValues>({
-    calories: result.calories,
-    protein: result.protein,
-    fat: result.fat,
-    carbs: result.carbs,
-    grams: result.grams,
-  });
+  const [values, setValues] = useState<NutritionValues>(() => analysisToEditable(result));
 
   useEffect(() => {
     setName(result.name);
-    setValues({
-      calories: result.calories,
-      protein: result.protein,
-      fat: result.fat,
-      carbs: result.carbs,
-      grams: result.grams,
-    });
+    setValues(analysisToEditable(result));
   }, [result]);
 
   const handleConfirm = () => {
-    onConfirm({
-      name: name.trim() || result.name,
-      calories: values.calories,
-      protein: values.protein,
-      fat: values.fat,
-      carbs: values.carbs,
-      grams: values.grams,
-    });
+    onConfirm({ ...values, name: name.trim() || result.name });
   };
 
   return (
@@ -107,6 +96,46 @@ export function FoodAnalysisError({ message, onRetry }: FoodAnalysisErrorProps) 
         <RefreshCw className="size-4" />
         Спробувати ще раз
       </Button>
+    </div>
+  );
+}
+
+interface FoodNotDetectedProps {
+  message: string;
+  onCamera: () => void;
+  onGallery: () => void;
+}
+
+export function FoodNotDetected({ message, onCamera, onGallery }: FoodNotDetectedProps) {
+  return (
+    <div className="space-y-5 py-4 text-center">
+      <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-amber-500/15 text-amber-500">
+        <UtensilsCrossed className="size-7" />
+      </div>
+      <div className="space-y-1">
+        <h2 className="text-lg font-semibold">Це не схоже на їжу</h2>
+        <p className="text-sm text-muted-foreground">{message}</p>
+        <p className="text-xs text-muted-foreground">
+          Спробуйте сфотографувати страву або оберіть інше фото з галереї.
+        </p>
+      </div>
+      <div className="space-y-2">
+        <Button
+          type="button"
+          onClick={onCamera}
+          className="h-12 w-full justify-center gap-3 rounded-xl text-base">
+          <Camera className="size-5" />
+          Зробити нове фото
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onGallery}
+          className="h-12 w-full justify-center gap-3 rounded-xl text-base">
+          <ImageIcon className="size-5" />
+          Обрати з галереї
+        </Button>
+      </div>
     </div>
   );
 }
