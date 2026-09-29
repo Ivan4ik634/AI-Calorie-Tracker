@@ -12,6 +12,4 @@ export interface UserProfile {
 export interface AppSettings {
   units: UnitSystem;
   darkTheme: boolean;
-  notifications: boolean;
-  mealReminders: boolean;
 }

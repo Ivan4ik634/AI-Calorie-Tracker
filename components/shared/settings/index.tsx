@@ -10,17 +10,14 @@ import {
   DialogPortal,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Switch } from '@/components/ui/switch';
-import { sendTestNotification } from '@/services/notifications/webPush';
 import { clearAllAppData } from '@/services/storage/appData';
 import { useFoodDiaryStore } from '@/stores/foodDiaryStore';
 import { useGoalsStore } from '@/stores/goalsStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { Bell, BellRing, Ruler, Shield, Trash } from 'lucide-react';
+import { Ruler, Shield, Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
 import { UnitsDialog } from './UnitsDialog';
 
 export default function SettingsPage() {
@@ -32,26 +29,14 @@ export default function SettingsPage() {
 
   const [unitsOpen, setUnitsOpen] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
-  const [testing, setTesting] = useState(false);
 
   useEffect(() => {
     hydrate();
   }, [hydrate]);
 
-  const handleTestNotification = async () => {
-    setTesting(true);
-    const error = await sendTestNotification();
-    setTesting(false);
-    if (error) {
-      toast.error(error);
-    } else {
-      toast.success('Тестове сповіщення надіслано!');
-    }
-  };
-
-  const handleClearData = () => {
-    clearAllAppData();
-    clearDiary();
+  const handleClearData = async () => {
+    await clearAllAppData();
+    await clearDiary();
     resetGoals();
     resetProfile();
     setClearOpen(false);
@@ -66,26 +51,6 @@ export default function SettingsPage() {
         <div className="divide-y divide-border/50 rounded-2xl border border-border/60 bg-card px-4">
           <MenuRow icon={Ruler} label="Одиниці вимірювання" onClick={() => setUnitsOpen(true)} />
 
-          <div className="flex items-center gap-3 py-3.5">
-            <Bell className="size-5 shrink-0 text-muted-foreground" />
-            <span className="flex-1 text-sm font-medium">Сповіщення</span>
-            <Switch
-              checked={settings.notifications}
-              onCheckedChange={(checked) => updateSettings({ notifications: checked })}
-            />
-          </div>
-          {settings.notifications && (
-            <button
-              type="button"
-              onClick={handleTestNotification}
-              disabled={testing}
-              className="flex w-full items-center gap-3 py-3 text-left transition-colors hover:opacity-80 disabled:opacity-50">
-              <BellRing className="size-5 shrink-0 text-muted-foreground" />
-              <span className="flex-1 text-sm font-medium">
-                {testing ? 'Надсилаємо...' : 'Тестове сповіщення'}
-              </span>
-            </button>
-          )}
           <MenuRow
             icon={Trash}
             label="Очистити дані"

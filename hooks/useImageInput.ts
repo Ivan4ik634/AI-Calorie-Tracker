@@ -1,3 +1,4 @@
+import { compressImage } from '@/lib/image';
 import { useCallback, useRef } from 'react';
 
 export function readFileAsDataUrl(file: File): Promise<string> {
@@ -23,7 +24,9 @@ export function useImageInput(onSelect: (dataUrl: string) => void) {
       if (!file) return;
 
       try {
-        const dataUrl = await readFileAsDataUrl(file);
+        const raw = await readFileAsDataUrl(file);
+        // Shrink before analysis/storage so entries fit in localStorage.
+        const dataUrl = await compressImage(raw);
         onSelect(dataUrl);
       } catch {
         // Reading errors are surfaced by the analysis flow.

@@ -138,7 +138,7 @@ export default function OnboardingPage() {
                   autoFocus
                   type="number"
                   autoComplete="off"
-                  name={`secure_num_${Math.random().toString(36).slice(2, 7)}`}
+                  name="onboarding-weight"
                   inputMode="numeric"
                   value={weight}
                   onChange={(event) => setWeight(event.target.value)}

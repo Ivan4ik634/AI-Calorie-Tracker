@@ -1,6 +1,5 @@
 'use client';
 
-import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useProfileStore } from '@/stores/profileStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { usePathname, useRouter } from 'next/navigation';
@@ -25,8 +24,6 @@ export function AppEffects() {
     if (pathname === '/onboarding') return;
     if (!onboarded) router.replace('/onboarding');
   }, [profileHydrated, onboarded, pathname, router]);
-
-  usePushNotifications();
 
   return null;
 }

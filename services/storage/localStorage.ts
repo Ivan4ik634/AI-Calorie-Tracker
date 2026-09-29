@@ -12,13 +12,15 @@ export function readJson<T>(key: string, fallback: T): T {
   }
 }
 
-export function writeJson<T>(key: string, value: T): void {
-  if (!isBrowser()) return;
+export function writeJson<T>(key: string, value: T): boolean {
+  if (!isBrowser()) return false;
 
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
+    return true;
   } catch {
-    // Ignore quota / serialization errors.
+    // Quota exceeded or serialization error — caller decides how to react.
+    return false;
   }
 }
 

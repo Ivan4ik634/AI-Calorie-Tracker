@@ -17,6 +17,7 @@ import { useProfileStore } from '@/stores/profileStore';
 import type { FoodEntry } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
 import { AddFoodCard } from './AddFoodCard';
 import { CalorieProgress } from './CalorieProgress';
 import { FoodAnalysisError, FoodAnalysisResult, FoodNotDetected } from './FoodAnalysisResult';
@@ -81,8 +82,8 @@ export default function HomePage() {
     analysis.reset();
   };
 
-  const handleConfirm = (values: NutritionValues & { name: string }) => {
-    addEntry({
+  const handleConfirm = async (values: NutritionValues & { name: string }) => {
+    const saved = await addEntry({
       name: values.name,
       calories: values.calories,
       protein: values.protein,
@@ -96,11 +97,17 @@ export default function HomePage() {
       eaten: true,
       image: analysis.image ?? undefined,
     });
+    if (!saved) {
+      toast.error('Не вдалося зберегти запис. Спробуйте ще раз.');
+    }
     closeFlow();
   };
 
-  const handleSaveDetail = (id: string, values: EditableNutrition & { eaten: boolean }) => {
-    updateEntry(id, { ...editableToEntryPatch(values), eaten: values.eaten });
+  const handleSaveDetail = async (id: string, values: EditableNutrition & { eaten: boolean }) => {
+    const saved = await updateEntry(id, { ...editableToEntryPatch(values), eaten: values.eaten });
+    if (!saved) {
+      toast.error('Не вдалося зберегти зміни. Спробуйте ще раз.');
+    }
   };
 
   const showSource = analysis.status === 'idle' || analysis.status === 'selecting';

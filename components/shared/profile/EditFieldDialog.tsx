@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { useEffect, useState } from 'react';
+import { useId, useState } from 'react';
 
 interface EditFieldDialogProps {
   open: boolean;
@@ -32,11 +32,50 @@ export function EditFieldDialog({
   onOpenChange,
   onSave,
 }: EditFieldDialogProps) {
-  const [draft, setDraft] = useState(String(value));
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPortal>
+        <DialogBackdrop />
+        <DialogPopup>
+          {open && (
+            <EditFieldContent
+              key={String(value)}
+              title={title}
+              label={label}
+              value={value}
+              type={type}
+              suffix={suffix}
+              onOpenChange={onOpenChange}
+              onSave={onSave}
+            />
+          )}
+        </DialogPopup>
+      </DialogPortal>
+    </Dialog>
+  );
+}
 
-  useEffect(() => {
-    if (open) setDraft(String(value));
-  }, [open, value]);
+interface EditFieldContentProps {
+  title: string;
+  label: string;
+  value: number | string;
+  type: 'text' | 'number';
+  suffix?: string;
+  onOpenChange: (open: boolean) => void;
+  onSave: (value: string) => void;
+}
+
+function EditFieldContent({
+  title,
+  label,
+  value,
+  type,
+  suffix,
+  onOpenChange,
+  onSave,
+}: EditFieldContentProps) {
+  const id = useId();
+  const [draft, setDraft] = useState(String(value));
 
   const handleSave = () => {
     if (draft.trim() === '') return;
@@ -45,46 +84,37 @@ export function EditFieldDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogPortal>
-        <DialogBackdrop />
-        <DialogPopup>
-          <DialogTitle>{title}</DialogTitle>
-          <div className="space-y-2">
-            <label className="text-sm text-muted-foreground">{label}</label>
-            <div className="flex items-center gap-2">
-              <Input
-                autoFocus
-                type={type}
-                autoComplete={type === 'number' ? 'off' : undefined}
-                name={
-                  type === 'number'
-                    ? `secure_num_${Math.random().toString(36).slice(2, 7)}`
-                    : undefined
-                }
-                inputMode={type === 'number' ? 'numeric' : 'text'}
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-                onKeyDown={(event) => event.key === 'Enter' && handleSave()}
-                className="h-11 rounded-xl text-base"
-              />
-              {suffix && <span className="text-sm text-muted-foreground">{suffix}</span>}
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="h-11 flex-1 rounded-xl">
-              Скасувати
-            </Button>
-            <Button type="button" onClick={handleSave} className="h-11 flex-1 rounded-xl">
-              Зберегти
-            </Button>
-          </div>
-        </DialogPopup>
-      </DialogPortal>
-    </Dialog>
+    <>
+      <DialogTitle>{title}</DialogTitle>
+      <div className="space-y-2">
+        <label className="text-sm text-muted-foreground">{label}</label>
+        <div className="flex items-center gap-2">
+          <Input
+            autoFocus
+            type={type}
+            autoComplete={type === 'number' ? 'off' : undefined}
+            name={type === 'number' ? `${id}-field` : undefined}
+            inputMode={type === 'number' ? 'numeric' : 'text'}
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event) => event.key === 'Enter' && handleSave()}
+            className="h-11 rounded-xl text-base"
+          />
+          {suffix && <span className="text-sm text-muted-foreground">{suffix}</span>}
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => onOpenChange(false)}
+          className="h-11 flex-1 rounded-xl">
+          Скасувати
+        </Button>
+        <Button type="button" onClick={handleSave} className="h-11 flex-1 rounded-xl">
+          Зберегти
+        </Button>
+      </div>
+    </>
   );
 }

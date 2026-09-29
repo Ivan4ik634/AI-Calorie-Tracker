@@ -6,8 +6,6 @@ const SETTINGS_KEY = 'calorie-counter:app-settings';
 export const DEFAULT_SETTINGS: AppSettings = {
   units: 'metric',
   darkTheme: true,
-  notifications: true,
-  mealReminders: true,
 };
 
 export const settingsStorage = {

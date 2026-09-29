@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import type { EditableNutrition } from '@/lib/nutrition';
 import { calcPortion } from '@/lib/nutrition';
 import { cn } from '@/lib/utils';
+import { useId } from 'react';
 
 export type NutritionValues = EditableNutrition;
 
@@ -25,6 +26,9 @@ const toNumber = (value: string) => {
 };
 
 export function NutritionFields({ values, onChange, className }: NutritionFieldsProps) {
+  // Stable ids keep the browser from autofilling these numeric fields.
+  const id = useId();
+
   const update = (key: keyof NutritionValues, raw: string) => {
     onChange({ ...values, [key]: toNumber(raw) });
   };
@@ -49,7 +53,7 @@ export function NutritionFields({ values, onChange, className }: NutritionFields
             <Input
               type="number"
               autoComplete="off"
-              name={`secure_num_${Math.random().toString(36).slice(2, 7)}`}
+              name={`${id}-calories`}
               inputMode="numeric"
               value={values.calories}
               onChange={(event) => update('calories', event.target.value)}
@@ -64,7 +68,7 @@ export function NutritionFields({ values, onChange, className }: NutritionFields
             <Input
               type="number"
               autoComplete="off"
-              name={`secure_num_${Math.random().toString(36).slice(2, 7)}`}
+              name={`${id}-grams`}
               inputMode="numeric"
               value={values.grams ?? ''}
               placeholder="—"
@@ -84,7 +88,7 @@ export function NutritionFields({ values, onChange, className }: NutritionFields
               <Input
                 type="number"
                 autoComplete="off"
-                name={`secure_num_${Math.random().toString(36).slice(2, 7)}`}
+                name={`${id}-${key}`}
                 inputMode="numeric"
                 value={values[key]}
                 onChange={(event) => update(key, event.target.value)}

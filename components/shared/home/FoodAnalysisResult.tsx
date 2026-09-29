@@ -15,7 +15,7 @@ import {
   UtensilsCrossed,
 } from 'lucide-react';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface FoodAnalysisResultProps {
   image: string;
@@ -25,13 +25,10 @@ interface FoodAnalysisResultProps {
 }
 
 export function FoodAnalysisResult({ image, result, onConfirm, onRetry }: FoodAnalysisResultProps) {
+  // The component remounts for every new analysis (it is unmounted while the
+  // "analyzing" preview is shown), so initialising from `result` is enough.
   const [name, setName] = useState(result.name);
   const [values, setValues] = useState<NutritionValues>(() => analysisToEditable(result));
-
-  useEffect(() => {
-    setName(result.name);
-    setValues(analysisToEditable(result));
-  }, [result]);
 
   const handleConfirm = () => {
     onConfirm({ ...values, name: name.trim() || result.name });

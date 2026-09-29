@@ -5,11 +5,14 @@ import { create } from 'zustand';
 interface FoodDiaryState {
   entries: FoodEntry[];
   hydrated: boolean;
-  hydrate: () => void;
-  addEntry: (entry: Omit<FoodEntry, 'id' | 'createdAt'>) => void;
-  updateEntry: (id: string, partial: Partial<Omit<FoodEntry, 'id' | 'createdAt'>>) => void;
-  removeEntry: (id: string) => void;
-  clear: () => void;
+  hydrate: () => Promise<void>;
+  addEntry: (entry: Omit<FoodEntry, 'id' | 'createdAt'>) => Promise<boolean>;
+  updateEntry: (
+    id: string,
+    partial: Partial<Omit<FoodEntry, 'id' | 'createdAt'>>,
+  ) => Promise<boolean>;
+  removeEntry: (id: string) => Promise<void>;
+  clear: () => Promise<void>;
 }
 
 const createId = () =>
@@ -21,38 +24,41 @@ export const useFoodDiaryStore = create<FoodDiaryState>((set, get) => ({
   entries: [],
   hydrated: false,
 
-  hydrate: () => {
+  hydrate: async () => {
     if (get().hydrated) return;
-    set({ entries: foodDiaryStorage.load(), hydrated: true });
+    const entries = await foodDiaryStorage.load();
+    set({ entries, hydrated: true });
   },
 
-  addEntry: (entry) => {
+  addEntry: async (entry) => {
     const newEntry: FoodEntry = {
       ...entry,
       id: createId(),
       createdAt: new Date().toISOString(),
     };
     const entries = [newEntry, ...get().entries];
-    foodDiaryStorage.save(entries);
+    // Keep the entry in memory even if persistence failed, so the user does
+    // not lose what they just added; the caller surfaces the warning.
     set({ entries });
+    return foodDiaryStorage.save(entries);
   },
 
-  updateEntry: (id, partial) => {
+  updateEntry: async (id, partial) => {
     const entries = get().entries.map((entry) =>
       entry.id === id ? { ...entry, ...partial } : entry,
     );
-    foodDiaryStorage.save(entries);
     set({ entries });
+    return foodDiaryStorage.save(entries);
   },
 
-  removeEntry: (id) => {
+  removeEntry: async (id) => {
     const entries = get().entries.filter((entry) => entry.id !== id);
-    foodDiaryStorage.save(entries);
     set({ entries });
+    await foodDiaryStorage.save(entries);
   },
 
-  clear: () => {
-    foodDiaryStorage.save([]);
+  clear: async () => {
     set({ entries: [] });
+    await foodDiaryStorage.save([]);
   },
 }));

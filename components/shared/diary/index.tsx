@@ -13,6 +13,7 @@ import { useGoalsStore } from '@/stores/goalsStore';
 import type { FoodEntry } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
 import { DailySummary } from './DailySummary';
 import { DiaryHeader } from './DiaryHeader';
 import { MealList } from './MealList';
@@ -42,8 +43,11 @@ export default function DiaryPage() {
     [dayEntries],
   );
 
-  const handleSave = (id: string, values: EditableNutrition & { eaten: boolean }) => {
-    updateEntry(id, { ...editableToEntryPatch(values), eaten: values.eaten });
+  const handleSave = async (id: string, values: EditableNutrition & { eaten: boolean }) => {
+    const saved = await updateEntry(id, { ...editableToEntryPatch(values), eaten: values.eaten });
+    if (!saved) {
+      toast.error('Не вдалося зберегти зміни. Спробуйте ще раз.');
+    }
   };
 
   return (
