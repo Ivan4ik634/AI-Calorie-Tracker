@@ -12,7 +12,8 @@ function parseAiContent(
 }
 
 export async function POST(req: Request) {
-  const { image } = await req.json();
+  const { image, hint } = await req.json();
+  const userHint = typeof hint === 'string' ? hint.trim() : '';
 
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
@@ -33,6 +34,12 @@ export async function POST(req: Request) {
 Analyze the food in this image.
 
 Return ONLY valid JSON. Do not include markdown, explanations, or any text outside the JSON.
+
+${
+  userHint
+    ? `The user describes this dish as: "${userHint}". Use this description as a strong hint when identifying the food and estimating its nutritional values.`
+    : ''
+}
 
 If the image contains recognizable food, return:
 

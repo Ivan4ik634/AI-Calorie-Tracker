@@ -162,7 +162,7 @@ export default function HomePage() {
             {showSource && <FoodSourceModal onCamera={openCamera} onGallery={openGallery} />}
 
             {analysis.status === 'preview' && analysis.image && (
-              <FoodPreview image={analysis.image} />
+              <FoodPreview image={analysis.image} onAnalyze={analysis.analyze} />
             )}
 
             {analysis.status === 'analyzing' && analysis.image && (

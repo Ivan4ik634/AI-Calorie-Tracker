@@ -8,14 +8,16 @@ export function useFoodAnalysis() {
   const [result, setResult] = useState<FoodAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
   const requestId = useRef(0);
+  const lastHint = useRef<string | undefined>(undefined);
 
-  const runAnalysis = useCallback(async (dataUrl: string) => {
+  const runAnalysis = useCallback(async (dataUrl: string, hint?: string) => {
     const current = ++requestId.current;
+    lastHint.current = hint;
     setStatus('analyzing');
     setError(null);
 
     try {
-      const analysis = await analyzeFood(dataUrl);
+      const analysis = await analyzeFood(dataUrl, hint);
       if (current !== requestId.current) return;
       setResult(analysis);
       setStatus('success');
@@ -31,28 +33,36 @@ export function useFoodAnalysis() {
     }
   }, []);
 
-  const selectImage = useCallback(
-    (dataUrl: string) => {
-      setImage(dataUrl);
-      setResult(null);
-      setError(null);
-      setStatus('preview');
-      void runAnalysis(dataUrl);
+  // Selecting an image only shows the preview. The user can add a short
+  // description and then start the analysis explicitly.
+  const selectImage = useCallback((dataUrl: string) => {
+    requestId.current += 1;
+    lastHint.current = undefined;
+    setImage(dataUrl);
+    setResult(null);
+    setError(null);
+    setStatus('preview');
+  }, []);
+
+  const analyze = useCallback(
+    (hint?: string) => {
+      if (image) void runAnalysis(image, hint);
     },
-    [runAnalysis],
+    [image, runAnalysis],
   );
 
   const retry = useCallback(() => {
-    if (image) void runAnalysis(image);
+    if (image) void runAnalysis(image, lastHint.current);
   }, [image, runAnalysis]);
 
   const reset = useCallback(() => {
     requestId.current += 1;
+    lastHint.current = undefined;
     setStatus('idle');
     setImage(null);
     setResult(null);
     setError(null);
   }, []);
 
-  return { status, image, result, error, selectImage, retry, reset };
+  return { status, image, result, error, selectImage, analyze, retry, reset };
 }
